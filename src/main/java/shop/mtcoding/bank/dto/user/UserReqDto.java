@@ -15,6 +15,15 @@ public class UserReqDto {
 
     @Getter
     @Setter
+    public static class LoginReqDto {
+        @NotEmpty
+        private String username;
+        @NotEmpty
+        private String password;
+    }
+
+    @Getter
+    @Setter
     public static class JoinReqDto {
         // 유효성 검사를 위한 어노테이션
         // 영문, 숫자는 되지만 한글은 안됨, 길이 최소 2~20자
