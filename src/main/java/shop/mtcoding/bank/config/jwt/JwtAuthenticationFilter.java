@@ -6,11 +6,13 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.core.AuthenticationException;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +31,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         setFilterProcessesUrl("/api/login"); // 시큐리티 기본 URL을 사용하지 않고, 내가 만든 URL을 사용하겠다.
         this.authenticationManager = authenticationManager;
     }
-    
+
     // Post : /api/login
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -40,7 +42,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         // 4. JWT 토큰을 만들어서 응답해준다.
 
         try {
-            
+
             ObjectMapper om = new ObjectMapper();
             LoginReqDto loginReqDto = om.readValue(request.getInputStream(), LoginReqDto.class);
 
@@ -48,14 +50,22 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     loginReqDto.getUsername(), loginReqDto.getPassword());
 
+            System.out.println("[로그인]JwtAuthenticationFilter : " + authenticationToken.toString());
             // JWT를 사용한다 하더라도, 컨트롤러에 진입을 하면 시큐리티의 권한체크, 인증체크의 도움을 받을 수 있도록 세션을 만든다.
             // 해당 세션의 유효기간은 request, response가 끝날 때 까지이다.
-            Authentication authentication = authenticationManager.authenticate(authenticationToken); // UserDetailsService의 loadUserByUsername() 함수가 실행된다.
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
             return authentication;
         } catch (Exception e) {
-            // authenticationEntryPoint로 넘어간다.
+            e.printStackTrace();
+            // unsuccessfulAuthentication() 호출
             throw new InternalAuthenticationServiceException(e.getMessage());
         }
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException failed) throws IOException, ServletException {
+        CustomResponseUtil.fail(response, "로그인에 실패하였습니다.", HttpStatus.UNAUTHORIZED);
     }
 
     // attemptAuthentication() 함수가 정상적으로 실행되면 실행된다.
@@ -69,4 +79,5 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         LoginRespDto loginRespDto = new LoginRespDto(loginUser.getUser());
         CustomResponseUtil.success(response, loginRespDto);
     }
+
 }
