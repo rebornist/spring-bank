@@ -31,15 +31,14 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 20)
+    @Column(unique = true, nullable = false, length = 4)
     private Long number; // 계좌번호
 
     @Column(nullable = false, length = 4)
     private Long password; // 계좌비밀번호
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private Long balance; // 잔액 (기본값 1000원)
-
 
     // 항상 ORM에서 FK의 주인은 Many Entity쪽이다.
     @ManyToOne(fetch = FetchType.LAZY) // account.getUser().필드호출() == Lazy 발동
