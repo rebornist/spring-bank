@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import shop.mtcoding.bank.domain.user.User;
+import shop.mtcoding.bank.handler.ex.CustomForbiddenException;
 
 @NoArgsConstructor // 스프링이 User 객체 생성할 때 빈 생성자로 new를 하기 때문!!
 @Getter
@@ -62,5 +63,11 @@ public class Account {
         this.user = user;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public void checkUser(Long userId) {
+        if (!this.user.getId().equals(userId)) { // Laze 로딩이어도 id를 조회할 때는 select 쿼리가 나가지 않는다.
+            throw new CustomForbiddenException("해당 계좌에 대한 권한이 없습니다.");
+        }
     }
 }
